@@ -45,8 +45,9 @@ var configCommand = &cobra.Command{
 	Use:   "config",
 	Short: `Enter an interactive configuration session.`,
 	Long: `Enter an interactive configuration session where you can setup new
-remotes and manage existing ones. You may also set or remove a
-password to protect your configuration.`,
+remotes and manage existing ones. Choose "Manage notifications" to add,
+edit or delete notification profiles for copy. You may also
+set or remove a password to protect your configuration.`,
 	Annotations: map[string]string{
 		"versionIntroduced": "v1.39",
 	},

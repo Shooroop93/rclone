@@ -296,7 +296,13 @@ func ChooseNumber(what string, min, max int) int {
 
 // ShowRemotes shows an overview of the config file
 func ShowRemotes() {
-	remotes := LoadedData().GetSectionList()
+	var remotes []string
+	for _, section := range FileSections() {
+		if strings.HasPrefix(section, NotificationSectionPrefix) {
+			continue
+		}
+		remotes = append(remotes, section)
+	}
 	if len(remotes) == 0 {
 		return
 	}
@@ -310,7 +316,13 @@ func ShowRemotes() {
 
 // ChooseRemote chooses a remote name
 func ChooseRemote() string {
-	remotes := LoadedData().GetSectionList()
+	var remotes []string
+	for _, section := range FileSections() {
+		if strings.HasPrefix(section, NotificationSectionPrefix) {
+			continue
+		}
+		remotes = append(remotes, section)
+	}
 	sort.Strings(remotes)
 	fmt.Println("Select remote.")
 	return Choose("remote", "value", remotes, nil, "", true, false)
@@ -338,14 +350,19 @@ func findByName(name string) (*fs.RegInfo, error) {
 
 // printRemoteOptions prints the options of the remote
 func printRemoteOptions(name string, prefix string, sep string, redacted bool) {
-	fsInfo, err := findByName(name)
-	if err != nil {
-		fmt.Printf("# %v\n", err)
-		fsInfo = nil
+	isNotification := strings.HasPrefix(name, NotificationSectionPrefix)
+	var fsInfo *fs.RegInfo
+	if !isNotification {
+		var err error
+		fsInfo, err = findByName(name)
+		if err != nil {
+			fmt.Printf("# %v\n", err)
+			fsInfo = nil
+		}
 	}
 	for _, key := range LoadedData().GetKeyList(name) {
 		isPassword := false
-		isSensitive := false
+		isSensitive := isNotification && key != "provider"
 		if fsInfo != nil {
 			for _, option := range fsInfo.Options {
 				if option.Name == key {
@@ -718,7 +735,14 @@ func ShowRedactedConfig() {
 // EditConfig edits the config file interactively
 func EditConfig(ctx context.Context) (err error) {
 	for {
-		haveRemotes := len(LoadedData().GetSectionList()) != 0
+		haveRemotes := false
+		for _, section := range FileSections() {
+			if strings.HasPrefix(section, NotificationSectionPrefix) {
+				continue
+			}
+			haveRemotes = true
+			break
+		}
 		what := []string{"eEdit existing remote", "nNew remote", "dDelete remote", "rRename remote", "cCopy remote", "sSet configuration password", "qQuit config"}
 		if haveRemotes {
 			fmt.Printf("Current remotes:\n\n")
@@ -729,6 +753,7 @@ func EditConfig(ctx context.Context) (err error) {
 			// take 2nd item and last 2 items of menu list
 			what = append(what[1:2], what[len(what)-2:]...)
 		}
+		what = slices.Insert(what, len(what)-1, "oManage notifications")
 		switch i := Command(what); i {
 		case 'e':
 			newSection()
@@ -765,6 +790,11 @@ func EditConfig(ctx context.Context) (err error) {
 		case 's':
 			newSection()
 			SetPassword()
+		case 'o':
+			newSection()
+			if err := editNotificationConfig(); err != nil {
+				return err
+			}
 		case 'q':
 			return nil
 		}

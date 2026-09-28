@@ -25,6 +25,9 @@ func compLogf(format string, a ...any) {
 func addRemotes(toComplete string, completions []string) []string {
 	remotes := config.FileSections()
 	for _, remote := range remotes {
+		if strings.HasPrefix(remote, config.NotificationSectionPrefix) {
+			continue
+		}
 		remote += ":"
 		if strings.HasPrefix(remote, toComplete) {
 			completions = append(completions, remote)

@@ -33,6 +33,9 @@ const (
 	hiddenConfigFileName = "." + configFileName
 	noConfigFile         = "notfound"
 
+	// NotificationSectionPrefix identifies notification profiles in the config file.
+	NotificationSectionPrefix = "notify:"
+
 	// ConfigToken is the key used to store the token under
 	ConfigToken = "token"
 
@@ -482,8 +485,11 @@ func GetRemotes() []Remote {
 		}
 		return false
 	}
-	sections := LoadedData().GetSectionList()
+	sections := FileSections()
 	for _, section := range sections {
+		if strings.HasPrefix(section, NotificationSectionPrefix) {
+			continue
+		}
 		if !remoteExists(section) {
 			typeValue, found := LoadedData().GetValue(section, "type")
 			if found {

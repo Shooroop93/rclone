@@ -2581,6 +2581,27 @@ This can be useful transferring files from Dropbox which have been
 modified by the desktop sync client which doesn't set checksums of
 modification times in the same way as rclone.
 
+### --notify stringArray
+
+Send start, progress and final notifications for `copy` to
+the selected notification profiles. Create profiles with `rclone config`, under
+`o) Manage notifications` > `n) New notification profile`. They are saved in
+`rclone.conf`.
+
+Use `--notify PROFILE` to enable a saved profile for `copy`. Repeat the flag
+to select multiple profiles, for example
+`--notify telegram-me --notify telegram-team`. Use profile names without the
+`notify:` section prefix. Creating a profile does not enable notifications;
+without `--notify`, no notification requests are made.
+
+Configure the progress interval, request timeout and final delivery timeout
+through `rclone config`, under `o) Manage notifications` >
+`t) Notification timing`. These settings apply to all profiles and have no
+command-line flags.
+
+See [notifications](/notifications/) for configuration details and delivery
+behavior.
+
 ### --stats Duration
 
 Commands which transfer data

@@ -37,6 +37,7 @@ import (
 	"github.com/rclone/rclone/lib/buildinfo"
 	"github.com/rclone/rclone/lib/exitcode"
 	"github.com/rclone/rclone/lib/terminal"
+	"github.com/rclone/rclone/notification"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -250,6 +251,24 @@ func Run(Retry bool, showStats bool, cmd *cobra.Command, f func() error) {
 	} else if showStats {
 		stopStats = StartStats()
 	}
+	var manager *notification.Manager
+	var notificationExit atexit.FnHandle
+	notifiers, options := notificationNotifiers(ctx, cmd)
+	if len(notifiers) != 0 {
+		manager = notification.NewManagerWithOptions(notifiers, options)
+		initial := notification.State{
+			Operation: cmd.Name(),
+			Phase:     "start",
+			StartedAt: time.Now(),
+		}
+		if args := cmd.Flags().Args(); len(args) >= 2 {
+			initial.Source, initial.Destination = notificationPath(args[0]), notificationPath(args[1])
+		}
+		manager.Start(ctx, initial)
+		notificationExit = atexit.Register(func() {
+			finishNotifications(manager, context.Canceled)
+		})
+	}
 	SigInfoHandler()
 	for try := 1; try <= ci.Retries; try++ {
 		cmdErr = f()
@@ -325,6 +344,10 @@ func Run(Retry bool, showStats bool, cmd *cobra.Command, f func() error) {
 	cache.Clear()
 	if lastErr := accounting.GlobalStats().GetLastError(); cmdErr == nil {
 		cmdErr = lastErr
+	}
+	if manager != nil {
+		finishNotifications(manager, cmdErr)
+		atexit.Unregister(notificationExit)
 	}
 
 	// Log the final error message and exit
