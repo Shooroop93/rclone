@@ -76,6 +76,7 @@ for more info.
 	Annotations: map[string]string{
 		"versionIntroduced": "v1.19",
 		"groups":            "Filter,Listing,Important,Copy",
+		"notification":      "true",
 	},
 	Run: func(command *cobra.Command, args []string) {
 		cmd.CheckArgs(2, 2, command, args)

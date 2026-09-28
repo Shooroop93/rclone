@@ -82,7 +82,8 @@ for more info.
 
 `, "|", "`") + operationsflags.Help(),
 	Annotations: map[string]string{
-		"groups": "Sync,Copy,Filter,Listing,Important",
+		"groups":       "Sync,Copy,Filter,Listing,Important",
+		"notification": "true",
 	},
 	Run: func(command *cobra.Command, args []string) {
 		cmd.CheckArgs(2, 2, command, args)
