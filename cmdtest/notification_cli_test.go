@@ -1,4 +1,4 @@
-package cmd_test
+package cmdtest
 
 import (
 	"context"
@@ -19,11 +19,6 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/rclone/rclone/backend/local"
-	"github.com/rclone/rclone/cmd"
-	_ "github.com/rclone/rclone/cmd/copy"
-	_ "github.com/rclone/rclone/cmd/move"
-	_ "github.com/rclone/rclone/cmd/sync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -51,7 +46,7 @@ func TestNotificationCLIHelper(t *testing.T) {
 	for i, arg := range os.Args {
 		if arg == "--" {
 			os.Args = append([]string{"rclone"}, os.Args[i+1:]...)
-			cmd.Main()
+			main()
 			t.Fatal("rclone returned without exiting")
 		}
 	}
